@@ -18,7 +18,8 @@ cpi_trend <- readxl::read_excel(here("data-raw", "cpi_trend.xlsx"),
            var = if_else(str_detect(var, "CPI"), "cpi", "se")) %>% 
     pivot_wider(names_from = "var",
                 values_from = "value") %>% 
-    select(country, year, cpi, se)
+    select(country, year, cpi, se) %>% 
+    filter(!is.na(cpi))
 
 cpi_links <- c(
     "https://images.transparencycdn.org/images/CPI-2011-new_200601_104308.csv",
