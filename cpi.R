@@ -40,6 +40,13 @@ cpi_links <- c(
     "https://images.transparencycdn.org/images/CPI-Archive-1996.csv",
     "https://images.transparencycdn.org/images/CPI-Archive-1995.csv")
 
+cpi_raw <- map(cpi_links, \(link) {
+    read_csv(link,
+             col_types = "ccccdc") %>%
+        mutate(year = as.numeric(str_extract(link, "\\d{4}"))) %>%
+        select(country, year, everything()) }) %>% 
+    set_names(2011:1995)
+
 cpi_older <- map(cpi_links, \(link) {
     read_csv(link, 
              col_types = "ccccdc") %>% 
@@ -49,13 +56,15 @@ cpi_older <- map(cpi_links, \(link) {
                    mutate(., interval = NA_character_),
                    .))} %>%
         mutate(interval = if_else(str_detect(interval, "-"),
-                                  as.numeric(str_extract(interval, "\\d.\\d$")) - as.numeric(str_extract(interval, "^\\d.\\d")), 
+                                  as.numeric(str_extract(interval, "\\d+.\\d$")) - as.numeric(str_extract(interval, "^\\d+.\\d")), 
                                   as.numeric(interval))) %>% 
         transmute(country = countrycode(iso, "iso3c", "country.name",
                                         custom_match = c("KSV" = "Kosovo")),
                   year = as.numeric(str_extract(link, "\\d{4}")),
                   cpi = as.numeric(str_replace(score, ",",".")) * 10,
-                  se = interval*5/qnorm(.95))
+                  se = if_else(year < 2002, 
+                               interval*5/qnorm(.975),
+                               interval*5/qnorm(.95)))
 }) %>% 
     list_rbind() %>% 
     group_by(country) %>% 
