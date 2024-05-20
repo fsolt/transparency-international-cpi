@@ -54,7 +54,7 @@ cpi_older <- map(cpi_links, \(link) {
                                         custom_match = c("KSV" = "Kosovo")),
                   year = as.numeric(str_extract(link, "\\d{4}")),
                   cpi = as.numeric(str_replace(score, ",",".")) * 10,
-                  se = interval*10/qnorm(.95))
+                  se = interval*5/qnorm(.95))
 }) %>% 
     list_rbind() %>% 
     group_by(country) %>% 
