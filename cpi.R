@@ -55,11 +55,15 @@ cpi_older <- map(cpi_links, \(link) {
               `if`(!"interval" %in% names(.),
                    mutate(., interval = NA_character_),
                    .))} %>%
-        mutate(interval = if_else(str_detect(interval, "-"),
-                                  as.numeric(str_extract(interval, "\\d+.\\d$")) - as.numeric(str_extract(interval, "^\\d+.\\d")), 
+        mutate(interval = str_replace(interval, "(\\d)-(\\d)", "\\1.\\2"),
+               interval = if_else(str_detect(interval, "-"),
+                                  as.numeric(str_extract(interval, "\\d+.\\d$")) - as.numeric(str_extract(interval, "^-?\\d+.\\d")), 
                                   as.numeric(interval))) %>% 
-        transmute(country = countrycode(iso, "iso3c", "country.name",
-                                        custom_match = c("KSV" = "Kosovo")),
+        transmute(country = countrycode(country %>% 
+                                            str_replace("&", "and"),
+                                        "country.name",
+                                        "country.name",
+                                        custom_match = c("Kuweit" = "Kuwait")),
                   year = as.numeric(str_extract(link, "\\d{4}")),
                   cpi = as.numeric(str_replace(score, ",",".")) * 10,
                   se = if_else(year < 2002, 
